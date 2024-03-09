@@ -5,6 +5,8 @@ import logging
 from mimetypes import guess_type
 from pathlib import Path
 from uuid import uuid4
+from PIL import Image
+from io import BytesIO
 
 from aiconsole.core.settings.settings import settings
 from aiconsole.core.users.types import PartialUserProfile, UserProfile
@@ -59,8 +61,13 @@ class UserProfileService:
         file_name: str | None = None,
         content_type: str | None = None,
     ) -> None:
+        original_image = Image.open(BytesIO(file.read()))
+        resized_image = original_image.resize((300,300))
+        output_buffer = BytesIO()
+        resized_image.save(output_buffer, format="JPEG")
+        
         settings().save(
-            PartialSettingsData(user_profile=PartialUserProfile(profile_picture=file.read())),
+            PartialSettingsData(user_profile=PartialUserProfile(profile_picture=output_buffer.getvalue())),
             to_global=True,
         )
 
